@@ -1,8 +1,11 @@
 import pygame
-from pygame.locals import QUIT
+from pygame.locals import *
 
 # Initialisation de Pygame
 pygame.init()
+
+clock = pygame.time.Clock()
+
 
 # Définir la taille de la fenêtre
 largeur, hauteur = 800, 600
@@ -20,11 +23,11 @@ fond = pygame.transform.scale(fond, (largeur, hauteur))
 
 import pygame
 
-def decouper_spritesheet(image, largeur_sprite, hauteur_sprite, nombre_images):
+def decouper_spritesheet(hauteur, image, largeur_sprite, hauteur_sprite, nombre_images):
     """Découpe une spritesheet horizontale en une liste de surfaces."""
     images = [] # On va mettre les images découper dans cette liste.
     for i in range(nombre_images):
-        rect = pygame.Rect(i * (largeur_sprite + 13) , 12, largeur_sprite, hauteur_sprite)
+        rect = pygame.Rect(i * (largeur_sprite + 13) , hauteur, largeur_sprite, hauteur_sprite)
         sous_image = image.subsurface(rect).copy()
         images.append(sous_image)
     return images
@@ -38,7 +41,7 @@ sprite_hauteur = 45
 nombre_frames = 10
 
 # Extraction des frames
-perso_idle_images = decouper_spritesheet(spritesheet, sprite_largeur, sprite_hauteur, nombre_frames)
+perso_idle_images = decouper_spritesheet(12, spritesheet, sprite_largeur, sprite_hauteur, nombre_frames)
 # Liste des frames du personnage qui patiente
 current_idle_index = 0 # la frame courante
 # Maintenant tu peux utiliser frames_idle[0], frames_idle[1], etc.
@@ -46,6 +49,17 @@ current_idle_index = 0 # la frame courante
 ############################################
 #       fin de découpage des images        #
 ############################################
+
+############################################
+#                Gravité                   #
+############################################
+# Gravité
+vitesse_y = 0
+gravite = 0.5
+vitesse_max = 10
+# Sol 
+sol_y = 530
+
 
 
 # Chargement de l'image du personnage avec transparence
@@ -58,8 +72,9 @@ temps_derniere_image = pygame.time.get_ticks()
 delai_animation = 500  # en ms
 
 
+
 rect_perso.center = (largeur // 2, hauteur // 2)  # centré dans la fenêtre
-vitesse = 0.5
+vitesse = 150
 en_mouvement = False # Permet de savoir si le personnage est en mouvement ou sur place.
 
 # Boucle principale
@@ -68,18 +83,39 @@ while en_cours:
     for evenement in pygame.event.get():
         if evenement.type == QUIT:
             en_cours = False
-
+    # Dans ta boucle principale
+    delta_time = clock.tick(60) / 1000  # en secondes
     # Gestion des touches
     touches = pygame.key.get_pressed()
-    if touches[pygame.K_RIGHT]:
-        rect_perso.x += vitesse
+    if touches[pygame.K_LEFT]:
+        rect_perso.x -= vitesse *delta_time
         en_mouvement = True
+    if touches[pygame.K_RIGHT]:
+        rect_perso.x += vitesse * delta_time
+        en_mouvement = True
+    if  touches[pygame.K_SPACE]:
+        if rect_perso.y > 400:
+            vitesse_y = -10
+            en_mouvement = True
     # Animation idle uniquement si le personnage ne bouge pas
     if not en_mouvement:
         maintenant = pygame.time.get_ticks()
         if maintenant - temps_derniere_image > delai_animation:
             current_idle_index = (current_idle_index + 1) % len(perso_idle_images)
             temps_derniere_image = maintenant
+    en_mouvement = False
+
+
+     # Gestion de la gravité
+    vitesse_y += gravite
+    if vitesse_y > vitesse_max:
+        vitesse_y = vitesse_max
+    rect_perso.y += vitesse_y
+
+    # Collision avec le sol
+    if rect_perso.bottom >= sol_y:
+        rect_perso.bottom = sol_y
+        vitesse_y = 0  # Le perso s'arrête quand il touche le sol
 
     # Choix de l’image
     image_perso = perso_idle_images[current_idle_index]
