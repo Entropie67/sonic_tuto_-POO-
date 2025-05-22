@@ -10,29 +10,58 @@ largeur, hauteur = 800, 600
 fenetre = pygame.display.set_mode((largeur, hauteur))
 pygame.display.set_caption('Fenêtre Pygame')
 
-#chargement d'une image :
-
 # Chargement de l'image de fond
 fond = pygame.image.load('images/fonds/fond1.jpg').convert()
 fond = pygame.transform.scale(fond, (largeur, hauteur))
 
+############################################
+#           Decoupage des images           #
+############################################
+
+import pygame
+
+def decouper_spritesheet(image, largeur_sprite, hauteur_sprite, nombre_images):
+    """Découpe une spritesheet horizontale en une liste de surfaces."""
+    images = [] # On va mettre les images découper dans cette liste.
+    for i in range(nombre_images):
+        rect = pygame.Rect(i * (largeur_sprite + 13) , 12, largeur_sprite, hauteur_sprite)
+        sous_image = image.subsurface(rect).copy()
+        images.append(sous_image)
+    return images
+
+# Chargement de la planche de sprites
+spritesheet = pygame.image.load('images/personnage/sonic.png').convert_alpha()
+
+# Dimensions d’un sprite individuel (par exemple 64x64)
+sprite_largeur = 32
+sprite_hauteur = 45
+nombre_frames = 10
+
+# Extraction des frames
+perso_idle_images = decouper_spritesheet(spritesheet, sprite_largeur, sprite_hauteur, nombre_frames)
+# Liste des frames du personnage qui patiente
+current_idle_index = 0 # la frame courante
+# Maintenant tu peux utiliser frames_idle[0], frames_idle[1], etc.
+
+############################################
+#       fin de découpage des images        #
+############################################
+
+
 # Chargement de l'image du personnage avec transparence
 personnage1 = pygame.image.load('images/personnage/sonic-stop.png').convert_alpha()
-personnage2 = pygame.image.load('images/personnage/sonic-stop-esquerda.png').convert_alpha()
 
-# Liste des frames d'idle
-perso_idle_images = [personnage1, personnage2]
-current_idle_index = 0
-rect_perso = personnage1.get_rect()
+rect_perso = personnage1.get_rect() # On réccupère le rectangle du personnage.
 
-# Temps pour l'animation
+# Temps pour l'animation d'attente
 temps_derniere_image = pygame.time.get_ticks()
 delai_animation = 500  # en ms
 
 
 rect_perso.center = (largeur // 2, hauteur // 2)  # centré dans la fenêtre
 vitesse = 0.5
-en_mouvement = False
+en_mouvement = False # Permet de savoir si le personnage est en mouvement ou sur place.
+
 # Boucle principale
 en_cours = True
 while en_cours:
