@@ -17,16 +17,22 @@ fond = pygame.image.load('images/fonds/fond1.jpg').convert()
 fond = pygame.transform.scale(fond, (largeur, hauteur))
 
 # Chargement de l'image du personnage avec transparence
-personnage = pygame.image.load('images/personnage/sonic-stop.png').convert_alpha()
-rect_perso = personnage.get_rect()
+personnage1 = pygame.image.load('images/personnage/sonic-stop.png').convert_alpha()
+personnage2 = pygame.image.load('images/personnage/sonic-stop-esquerda.png').convert_alpha()
 
-# Position initiale du personnage (au centre de l'écran)
-x_perso = (largeur - personnage.get_width()) // 2 -50
-y_perso = (hauteur - personnage.get_height()) // 2
+# Liste des frames d'idle
+perso_idle_images = [personnage1, personnage2]
+current_idle_index = 0
+rect_perso = personnage1.get_rect()
+
+# Temps pour l'animation
+temps_derniere_image = pygame.time.get_ticks()
+delai_animation = 500  # en ms
+
 
 rect_perso.center = (largeur // 2, hauteur // 2)  # centré dans la fenêtre
 vitesse = 0.5
-
+en_mouvement = False
 # Boucle principale
 en_cours = True
 while en_cours:
@@ -38,12 +44,22 @@ while en_cours:
     touches = pygame.key.get_pressed()
     if touches[pygame.K_RIGHT]:
         rect_perso.x += vitesse
+        en_mouvement = True
+    # Animation idle uniquement si le personnage ne bouge pas
+    if not en_mouvement:
+        maintenant = pygame.time.get_ticks()
+        if maintenant - temps_derniere_image > delai_animation:
+            current_idle_index = (current_idle_index + 1) % len(perso_idle_images)
+            temps_derniere_image = maintenant
+
+    # Choix de l’image
+    image_perso = perso_idle_images[current_idle_index]
 
     # Affichage de l'image de fond
     fenetre.blit(fond, (0, 0))
 
     # Affichage du personnage par-dessus
-    fenetre.blit(personnage, rect_perso.topleft)
+    fenetre.blit(image_perso, rect_perso.topleft)
 
     # Rafraîchir l'affichage
     pygame.display.flip()
