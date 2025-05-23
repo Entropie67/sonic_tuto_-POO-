@@ -6,7 +6,6 @@ pygame.init()
 
 clock = pygame.time.Clock()
 
-
 # Définir la taille de la fenêtre
 largeur, hauteur = 800, 600
 
@@ -40,9 +39,12 @@ nombre_frames = 10
 
 # Extraction des frames
 perso_idle_images = decouper_spritesheet(12, spritesheet, sprite_largeur, sprite_hauteur, nombre_frames)
+perso_marche_images = decouper_spritesheet(141, spritesheet, sprite_largeur, sprite_hauteur, nombre_frames)
 # Liste des frames du personnage qui patiente
 current_idle_index = 0 # la frame courante
-# Maintenant tu peux utiliser frames_idle[0], frames_idle[1], etc.
+current_marche_index = 0 # la frame courante
+direction = "droite" # direction
+
 
 ############################################
 #       fin de découpage des images        #
@@ -77,6 +79,7 @@ vitesse = 150
 
 # Boucle principale
 en_cours = True
+
 while en_cours:
     for evenement in pygame.event.get():
         if evenement.type == QUIT:
@@ -91,19 +94,29 @@ while en_cours:
     if touches[pygame.K_RIGHT]:
         rect_perso.x += vitesse * delta_time
         en_mouvement = True
+        direction = "droite"
+
+    if touches[pygame.K_LEFT]:
+        rect_perso.x -= vitesse * delta_time
+        en_mouvement = True 
+        direction = "gauche"
+          
     if  touches[pygame.K_SPACE]:
         if rect_perso.y > 400:
             vitesse_y = -10
             en_mouvement = True
+
     # Animation idle uniquement si le personnage ne bouge pas
+    maintenant = pygame.time.get_ticks()
     if not en_mouvement:
-        maintenant = pygame.time.get_ticks()
         if maintenant - temps_derniere_image > delai_animation:
             current_idle_index = (current_idle_index + 1) % len(perso_idle_images)
             temps_derniere_image = maintenant
+    else: # Animation idle uniquement si le personnage marche
+        if maintenant - temps_derniere_image > delai_animation:
+            current_marche_index = (current_marche_index + 1) % len(perso_marche_images)
+            temps_derniere_image = maintenant
     
-
-
      # Gestion de la gravité
     vitesse_y += gravite
     if vitesse_y > vitesse_max:
