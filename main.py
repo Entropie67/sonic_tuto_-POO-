@@ -116,7 +116,10 @@ while en_cours:
         if maintenant - temps_derniere_image > delai_animation:
             current_marche_index = (current_marche_index + 1) % len(perso_marche_images)
             temps_derniere_image = maintenant
-    
+        image_perso = perso_marche_images[current_marche_index]
+    # Flip si vers la gauche
+    if direction == "gauche":
+        image_perso = pygame.transform.flip(image_perso, True, False)
      # Gestion de la gravité
     vitesse_y += gravite
     if vitesse_y > vitesse_max:
