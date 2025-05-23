@@ -87,7 +87,9 @@ while en_cours:
     delta_time = clock.tick(60) / 1000  # en secondes
     # Gestion des touches
     touches = pygame.key.get_pressed()
-    
+    if touches[pygame.K_LEFT]:
+        rect_perso.x -= vitesse *delta_time
+        en_mouvement = True
     if touches[pygame.K_RIGHT]:
         rect_perso.x += vitesse * delta_time
         en_mouvement = True
