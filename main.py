@@ -73,7 +73,7 @@ delai_animation = 500  # en ms
 
 rect_perso.center = (largeur // 2, hauteur // 2)  # centré dans la fenêtre
 vitesse = 150
-en_mouvement = False # Permet de savoir si le personnage est en mouvement ou sur place.
+
 
 # Boucle principale
 en_cours = True
@@ -83,7 +83,9 @@ while en_cours:
             en_cours = False
     
     delta_time = clock.tick(60) / 1000  # en secondes
-    # Gestion des touches
+    en_mouvement = False # Permet de savoir si le personnage est en mouvement ou sur place.
+    # Gestion des touches #
+   
     touches = pygame.key.get_pressed()
     
     if touches[pygame.K_RIGHT]:
@@ -99,7 +101,7 @@ while en_cours:
         if maintenant - temps_derniere_image > delai_animation:
             current_idle_index = (current_idle_index + 1) % len(perso_idle_images)
             temps_derniere_image = maintenant
-    en_mouvement = False
+    
 
 
      # Gestion de la gravité

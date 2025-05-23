@@ -4,130 +4,122 @@ from pygame.locals import *
 # Initialisation de Pygame
 pygame.init()
 
-clock = pygame.time.Clock()
-
-
 # Définir la taille de la fenêtre
 largeur, hauteur = 800, 600
-
+clock = pygame.time.Clock()
 fenetre = pygame.display.set_mode((largeur, hauteur))
 pygame.display.set_caption('Fenêtre Pygame')
-
-# Chargement de l'image de fond
-fond = pygame.image.load('images/fonds/fond1.jpg').convert()
-fond = pygame.transform.scale(fond, (largeur, hauteur))
 
 ############################################
 #           Decoupage des images           #
 ############################################
 
-import pygame
-
 def decouper_spritesheet(hauteur, image, largeur_sprite, hauteur_sprite, nombre_images):
     """Découpe une spritesheet horizontale en une liste de surfaces."""
-    images = [] # On va mettre les images découper dans cette liste.
+    images = []
     for i in range(nombre_images):
-        rect = pygame.Rect(i * (largeur_sprite + 13) , hauteur, largeur_sprite, hauteur_sprite)
+        rect = pygame.Rect(i * (largeur_sprite + 13), hauteur, largeur_sprite, hauteur_sprite)
         sous_image = image.subsurface(rect).copy()
         images.append(sous_image)
     return images
 
+############################################
+#                Classe Sonic              #
+############################################
+
+class Sonic:
+
+    def __init__(self, spritesheet, sol_y):
+        # Dimensions d’un sprite individuel
+        self.sprite_largeur = 32
+        self.sprite_hauteur = 45
+        self.nombre_frames = 10
+        # Extraction des frames d'attente
+        self.images_idle = decouper_spritesheet(12, spritesheet, self.sprite_largeur, self.sprite_hauteur, self.nombre_frames)
+        self.current_idle_index = 0
+        self.temps_derniere_image = pygame.time.get_ticks()
+        self.delai_animation = 500  # ms
+        self.image = self.images_idle[self.current_idle_index]
+        self.rect = self.image.get_rect()
+        self.rect.center = (largeur // 2, hauteur // 2)  # position initiale
+
+        self.vitesse = 150
+        self.vitesse_y = 0
+        self.gravite = 0.5
+        self.vitesse_max = 10
+        self.sol_y = sol_y
+        self.en_mouvement = False
+
+    def mettre_a_jour(self, touches, delta_time):
+        self.en_mouvement = False
+        if touches[K_LEFT]:
+            self.rect.x -= self.vitesse * delta_time
+            self.en_mouvement = True
+        if touches[K_RIGHT]:
+            self.rect.x += self.vitesse * delta_time
+            self.en_mouvement = True
+        if touches[K_SPACE] and self.rect.bottom >= self.sol_y:
+            self.vitesse_y = -10
+            self.en_mouvement = True
+
+        self.appliquer_gravite()
+
+        if not self.en_mouvement:
+            self.gerer_animation_idle()
+        self.image = self.images_idle[self.current_idle_index]
+
+    def appliquer_gravite(self):
+        self.vitesse_y += self.gravite
+        if self.vitesse_y > self.vitesse_max:
+            self.vitesse_y = self.vitesse_max
+        self.rect.y += self.vitesse_y
+        if self.rect.bottom >= self.sol_y:
+            self.rect.bottom = self.sol_y
+            self.vitesse_y = 0
+
+    def gerer_animation_idle(self):
+        maintenant = pygame.time.get_ticks()
+        if maintenant - self.temps_derniere_image > self.delai_animation:
+            self.current_idle_index = (self.current_idle_index + 1) % len(self.images_idle)
+            self.temps_derniere_image = maintenant
+
+    def dessiner(self, fenetre):
+        fenetre.blit(self.image, self.rect.topleft)
+
+############################################
+#          Chargement des images           #
+############################################
+
+# Chargement de l'image de fond
+fond = pygame.image.load('images/fonds/fond1.jpg').convert()
+fond = pygame.transform.scale(fond, (largeur, hauteur))
+
 # Chargement de la planche de sprites
 spritesheet = pygame.image.load('images/personnage/sonic.png').convert_alpha()
 
-# Dimensions d’un sprite individuel (par exemple 64x64)
-sprite_largeur = 32
-sprite_hauteur = 45
-nombre_frames = 10
-
-# Extraction des frames
-perso_idle_images = decouper_spritesheet(12, spritesheet, sprite_largeur, sprite_hauteur, nombre_frames)
-# Liste des frames du personnage qui patiente
-current_idle_index = 0 # la frame courante
-# Maintenant tu peux utiliser frames_idle[0], frames_idle[1], etc.
-
-############################################
-#       fin de découpage des images        #
-############################################
-
-############################################
-#                Gravité                   #
-############################################
-# Gravité
-vitesse_y = 0
-gravite = 0.5
-vitesse_max = 10
-# Sol 
+# Position du sol (à adapter selon la taille du sprite et le fond)
 sol_y = 530
 
+############################################
+#               Boucle Jeu                 #
+############################################
 
-
-# Chargement de l'image du personnage avec transparence
-personnage1 = pygame.image.load('images/personnage/sonic-stop.png').convert_alpha()
-
-rect_perso = personnage1.get_rect() # On réccupère le rectangle du personnage.
-
-# Temps pour l'animation d'attente
-temps_derniere_image = pygame.time.get_ticks()
-delai_animation = 500  # en ms
-
-
-
-rect_perso.center = (largeur // 2, hauteur // 2)  # centré dans la fenêtre
-vitesse = 150
-en_mouvement = False # Permet de savoir si le personnage est en mouvement ou sur place.
-
-# Boucle principale
+# Création du personnage Sonic
+sonic = Sonic(spritesheet, sol_y)
 en_cours = True
+
 while en_cours:
     for evenement in pygame.event.get():
         if evenement.type == QUIT:
             en_cours = False
-    # Dans ta boucle principale
+
     delta_time = clock.tick(60) / 1000  # en secondes
-    # Gestion des touches
     touches = pygame.key.get_pressed()
-    if touches[pygame.K_LEFT]:
-        rect_perso.x -= vitesse *delta_time
-        en_mouvement = True
-    if touches[pygame.K_RIGHT]:
-        rect_perso.x += vitesse * delta_time
-        en_mouvement = True
-    if  touches[pygame.K_SPACE]:
-        if rect_perso.y > 400:
-            vitesse_y = -10
-            en_mouvement = True
-    # Animation idle uniquement si le personnage ne bouge pas
-    if not en_mouvement:
-        maintenant = pygame.time.get_ticks()
-        if maintenant - temps_derniere_image > delai_animation:
-            current_idle_index = (current_idle_index + 1) % len(perso_idle_images)
-            temps_derniere_image = maintenant
-    en_mouvement = False
 
+    sonic.mettre_a_jour(touches, delta_time)
 
-     # Gestion de la gravité
-    vitesse_y += gravite
-    if vitesse_y > vitesse_max:
-        vitesse_y = vitesse_max
-    rect_perso.y += vitesse_y
-
-    # Collision avec le sol
-    if rect_perso.bottom >= sol_y:
-        rect_perso.bottom = sol_y
-        vitesse_y = 0  # Le perso s'arrête quand il touche le sol
-
-    # Choix de l’image
-    image_perso = perso_idle_images[current_idle_index]
-
-    # Affichage de l'image de fond
     fenetre.blit(fond, (0, 0))
-
-    # Affichage du personnage par-dessus
-    fenetre.blit(image_perso, rect_perso.topleft)
-
-    # Rafraîchir l'affichage
+    sonic.dessiner(fenetre)
     pygame.display.flip()
 
-# Fermeture de Pygame
 pygame.quit()
