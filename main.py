@@ -11,7 +11,7 @@ clock = pygame.time.Clock()
 largeur, hauteur = 800, 600
 
 fenetre = pygame.display.set_mode((largeur, hauteur))
-pygame.display.set_caption('Fenêtre Pygame')
+pygame.display.set_caption('Super Sonic')
 
 # Chargement de l'image de fond
 fond = pygame.image.load('images/fonds/fond1.jpg').convert()
@@ -20,8 +20,6 @@ fond = pygame.transform.scale(fond, (largeur, hauteur))
 ############################################
 #           Decoupage des images           #
 ############################################
-
-import pygame
 
 def decouper_spritesheet(hauteur, image, largeur_sprite, hauteur_sprite, nombre_images):
     """Découpe une spritesheet horizontale en une liste de surfaces."""
@@ -83,7 +81,7 @@ while en_cours:
     for evenement in pygame.event.get():
         if evenement.type == QUIT:
             en_cours = False
-    # Dans ta boucle principale
+    
     delta_time = clock.tick(60) / 1000  # en secondes
     # Gestion des touches
     touches = pygame.key.get_pressed()
