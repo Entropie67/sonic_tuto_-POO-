@@ -106,20 +106,24 @@ while en_cours:
             vitesse_y = -10
             en_mouvement = True
 
-    # Animation idle uniquement si le personnage ne bouge pas
+        # Choix et animation de l’image en fonction du mouvement
     maintenant = pygame.time.get_ticks()
-    if not en_mouvement:
-        if maintenant - temps_derniere_image > delai_animation:
-            current_idle_index = (current_idle_index + 1) % len(perso_idle_images)
-            temps_derniere_image = maintenant
-    else: # Animation idle uniquement si le personnage marche
+
+    if en_mouvement:
         if maintenant - temps_derniere_image > delai_animation:
             current_marche_index = (current_marche_index + 1) % len(perso_marche_images)
             temps_derniere_image = maintenant
         image_perso = perso_marche_images[current_marche_index]
-    # Flip si vers la gauche
+    else:
+        if maintenant - temps_derniere_image > delai_animation:
+            current_idle_index = (current_idle_index + 1) % len(perso_idle_images)
+            temps_derniere_image = maintenant
+        image_perso = perso_idle_images[current_idle_index]
+
+    # Flip si direction gauche
     if direction == "gauche":
         image_perso = pygame.transform.flip(image_perso, True, False)
+
      # Gestion de la gravité
     vitesse_y += gravite
     if vitesse_y > vitesse_max:
@@ -131,8 +135,7 @@ while en_cours:
         rect_perso.bottom = sol_y
         vitesse_y = 0  # Le perso s'arrête quand il touche le sol
 
-    # Choix de l’image
-    image_perso = perso_idle_images[current_idle_index]
+
 
     # Affichage de l'image de fond
     fenetre.blit(fond, (0, 0))
